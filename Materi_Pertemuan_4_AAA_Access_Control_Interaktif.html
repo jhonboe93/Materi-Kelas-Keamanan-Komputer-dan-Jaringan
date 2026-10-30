@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Materi interaktif Keamanan Komputer dan Jaringan: AAA, RBAC, ACL, simulasi kontrol akses, dan audit log.">
+<title>Pertemuan 4 — AAA & Access Control</title>
+<style>
+:root{
+  --bg:#f4f7fb;--surface:#ffffff;--ink:#172033;--muted:#5e6b80;--line:#dbe3ee;
+  --blue:#2457c5;--blue-dark:#173b8a;--blue-soft:#eaf1ff;--teal:#087f8c;
+  --green:#197447;--green-soft:#e9f8ef;--red:#b42332;--red-soft:#fff0f0;
+  --amber:#946200;--amber-soft:#fff6dc;--shadow:0 8px 28px rgba(23,32,51,.07);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+a{color:var(--blue);overflow-wrap:anywhere}
+button,select,input{font:inherit}
+button{cursor:pointer}
+.hero{background:linear-gradient(125deg,#122d66,#2457c5 60%,#087f8c);color:white;padding:42px 20px 34px}
+.hero-inner,.container{max-width:1120px;margin:auto}
+.kicker{text-transform:uppercase;letter-spacing:.12em;font-size:.78rem;font-weight:800;opacity:.85}
+h1{font-size:clamp(2rem,4vw,3.1rem);line-height:1.12;margin:.5rem 0 1rem}
+.hero p{max-width:800px;margin:.5rem 0;color:#edf3ff;font-size:1.08rem}
+.hero-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.pill{border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:5px 11px;font-size:.86rem;background:rgba(255,255,255,.1)}
+.layout{display:grid;grid-template-columns:245px minmax(0,1fr);gap:24px;max-width:1120px;margin:24px auto;padding:0 18px}
+nav{align-self:start;position:sticky;top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+nav strong{display:block;margin:0 0 8px}
+nav a{display:block;text-decoration:none;padding:7px 9px;border-radius:9px;color:var(--muted);font-size:.93rem}
+nav a:hover,nav a:focus{background:var(--blue-soft);color:var(--blue-dark)}
+main{min-width:0}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(18px,3vw,30px);margin-bottom:22px;box-shadow:var(--shadow);scroll-margin-top:18px}
+h2{font-size:1.55rem;line-height:1.25;margin:0 0 12px}
+h3{font-size:1.13rem;margin:22px 0 8px}
+p{margin:.55rem 0 1rem}
+.lead{font-size:1.05rem;color:#354258}
+.note{border-left:4px solid var(--blue);background:var(--blue-soft);padding:13px 15px;border-radius:8px;margin:16px 0}
+.warning{border-left-color:#d49a14;background:var(--amber-soft)}
+.success{border-left-color:var(--green);background:var(--green-soft)}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.concept{border:1px solid var(--line);border-radius:14px;padding:15px;background:#fcfdff}
+.concept .letter{display:inline-grid;place-items:center;width:35px;height:35px;border-radius:10px;background:var(--blue-soft);color:var(--blue-dark);font-weight:900;margin-bottom:8px}
+.concept h3{margin:0 0 6px}
+.table-wrap{overflow-x:auto;margin:12px 0 18px}
+table{border-collapse:collapse;width:100%;min-width:590px;font-size:.94rem}
+th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f0f4fa;font-weight:750}
+td.center,th.center{text-align:center}
+code,.code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#f0f3f8;border-radius:5px;padding:2px 5px}
+button.primary,.btn{border:0;background:var(--blue);color:#fff;border-radius:10px;padding:10px 14px;font-weight:700}
+button.primary:hover,.btn:hover{background:var(--blue-dark)}
+button.secondary{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:9px 12px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
+.small{font-size:.9rem;color:var(--muted)}
+.callout-title{font-weight:800}
+details{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0;background:#fff}
+summary{font-weight:750;cursor:pointer}
+details[open] summary{margin-bottom:8px}
+.lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fbfcff}
+label{display:block;font-weight:700;font-size:.92rem;margin:10px 0 5px}
+select,input[type=text]{width:100%;border:1px solid #bfcada;border-radius:9px;padding:10px;background:white;color:var(--ink)}
+.result{border-radius:10px;padding:12px 14px;margin-top:12px;font-weight:700}
+.granted{background:var(--green-soft);color:var(--green);border:1px solid #b8e4c8}
+.denied{background:var(--red-soft);color:var(--red);border:1px solid #f2c0c5}
+.neutral{background:#f1f4f8;color:#344054;border:1px solid var(--line)}
+.matrix td select{min-width:95px}
+.matrix table{min-width:680px}
+.matrix td,.matrix th{text-align:center}
+.matrix td:first-child,.matrix th:first-child{text-align:left}
+.quiz-item{padding:15px;border:1px solid var(--line);border-radius:12px;margin:12px 0}
+.quiz-item p{font-weight:700;margin-top:0}
+.quiz-item label{font-weight:400;display:flex;gap:9px;align-items:flex-start;margin:8px 0}
+.quiz-item input{margin-top:6px}
+#quizResult{font-weight:800;margin-top:14px}
+footer{max-width:1120px;margin:0 auto;padding:4px 18px 36px;color:var(--muted);font-size:.9rem}
+.progress{height:7px;background:#dce5f2;border-radius:99px;overflow:hidden;margin:10px 0 18px}
+.progress span{display:block;height:100%;width:0;background:var(--teal);transition:width .2s}
+.step-tag{display:inline-block;font-size:.8rem;font-weight:800;color:var(--blue-dark);background:var(--blue-soft);border-radius:6px;padding:3px 7px;margin-bottom:8px}
+.checklist label{display:flex;gap:9px;align-items:flex-start;font-weight:500}
+.checklist input{margin-top:6px}
+.hidden{display:none!important}
+@media(max-width:850px){.layout{grid-template-columns:1fr}nav{position:static}.grid-3{grid-template-columns:1fr}.lab-grid{grid-template-columns:1fr}}
+@media print{body{background:white}.hero{padding:20px;background:#fff;color:#111;border-bottom:2px solid #111}.hero p{color:#333}.layout{display:block;margin:0;padding:0}nav,.actions,button,select,.interactive-only{display:none!important}section.card{box-shadow:none;break-inside:avoid;border:1px solid #aaa}footer{padding:10px 0}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="kicker">Keamanan Komputer dan Jaringan · Pertemuan 4</div>
+    <h1>AAA &amp; Access Control</h1>
+    <p>Materi belajar mandiri dan panduan praktikum: memahami Authentication, Authorization, Accounting, RBAC, ACL, serta cara menguji dan memperbaiki kebijakan akses.</p>
+    <div class="hero-meta">
+      <span class="pill">Level: Pemula</span><span class="pill">Teori + simulasi</span><span class="pill">Estimasi praktik: 100 menit</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+<nav aria-label="Navigasi materi">
+  <strong>Isi materi</strong>
+  <a href="#tujuan">1. Tujuan belajar</a>
+  <a href="#aaa">2. Konsep AAA</a>
+  <a href="#access">3. Access control</a>
+  <a href="#rbac">4. RBAC</a>
+  <a href="#acl">5. ACL</a>
+  <a href="#banding">6. RBAC vs ACL</a>
+  <a href="#sim-auth">7. Praktik Authentication</a>
+  <a href="#sim-rbac">8. Praktik RBAC</a>
+  <a href="#sim-acl">9. Praktik ACL</a>
+  <a href="#accounting">10. Praktik Accounting</a>
+  <a href="#kasus">11. Audit dan perbaikan</a>
+  <a href="#kuis">12. Kuis evaluasi</a>
+  <a href="#laporan">13. Format laporan</a>
+</nav>
+
+<main>
+<section class="card" id="tujuan">
+  <span class="step-tag">MULAI DI SINI</span>
+  <h2>1. Tujuan pembelajaran</h2>
+  <p class="lead">Setelah menyelesaikan materi dan praktikum ini, mahasiswa diharapkan mampu membedakan AAA, menjelaskan RBAC dan ACL, menguji keputusan akses, mengenali kebijakan yang terlalu luas, serta menyusun rekomendasi perbaikan.</p>
+  <div class="grid-3">
+    <div class="concept"><div class="letter">A</div><h3>Memahami</h3><p>Menjelaskan Authentication, Authorization, dan Accounting dengan contoh.</p></div>
+    <div class="concept"><div class="letter">B</div><h3>Menguji</h3><p>Menguji siapa yang boleh melakukan tindakan tertentu pada sebuah resource.</p></div>
+    <div class="concept"><div class="letter">C</div><h3>Mengevaluasi</h3><p>Menemukan izin berlebihan dan memberi rekomendasi yang beralasan.</p></div>
+  </div>
+  <div class="note"><span class="callout-title">Ide utama:</span> berhasil login tidak berarti pengguna otomatis boleh membuka semua data atau menjalankan semua fungsi.</div>
+</section>
+
+<section class="card" id="aaa">
+  <h2>2. Konsep AAA</h2>
+  <p>AAA adalah tiga fungsi keamanan yang sering digunakan bersama untuk mengelola identitas, izin, dan catatan aktivitas.</p>
+  <div class="grid-3">
+    <div class="concept"><div class="letter">A1</div><h3>Authentication</h3><p><b>Pertanyaan:</b> Who are you?</p><p>Sistem memverifikasi identitas, misalnya melalui password atau Multi-Factor Authentication (MFA).</p><p><b>Contoh:</b> pengguna memasukkan username dan password yang benar.</p></div>
+    <div class="concept"><div class="letter">A2</div><h3>Authorization</h3><p><b>Pertanyaan:</b> What are you allowed to do?</p><p>Sistem menentukan tindakan yang boleh dilakukan pengguna terhadap resource tertentu.</p><p><b>Contoh:</b> pengguna boleh membaca dokumen, tetapi tidak boleh menghapusnya.</p></div>
+    <div class="concept"><div class="letter">A3</div><h3>Accounting</h3><p><b>Pertanyaan:</b> What did you do?</p><p>Sistem mencatat aktivitas yang relevan untuk audit dan investigasi.</p><p><b>Contoh:</b> waktu login, perubahan hak akses, dan hasil permintaan akses.</p></div>
+  </div>
+  <h3>Latihan cepat: tentukan komponen AAA</h3>
+  <p>Pilih komponen yang paling utama untuk setiap kejadian. Beberapa kejadian bisa berhubungan dengan lebih dari satu komponen, tetapi pilih fokus utamanya.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kejadian</th><th>Pilihan</th><th>Periksa</th><th>Penjelasan</th></tr></thead>
+    <tbody>
+      <tr><td>1. Sistem memeriksa password saat login.</td><td><select id="aaa1"><option value="">Pilih...</option><option>Authentication</option><option>Authorization</option><option>Accounting</option></select></td><td><button class="secondary" onclick="checkAAA(1,'Authentication')">Cek</button></td><td id="aaa1out" class="small">Belum diperiksa.</td></tr>
+      <tr><td>2. Sistem memutuskan apakah staf boleh menghapus file.</td><td><select id="aaa2"><option value="">Pilih...</option><option>Authentication</option><option>Authorization</option><option>Accounting</option></select></td><td><button class="secondary" onclick="checkAAA(2,'Authorization')">Cek</button></td><td id="aaa2out" class="small">Belum diperiksa.</td></tr>
+      <tr><td>3. Sistem menyimpan catatan bahwa admin mengubah izin pengguna.</td><td><select id="aaa3"><option value="">Pilih...</option><option>Authentication</option><option>Authorization</option><option>Accounting</option></select></td><td><button class="secondary" onclick="checkAAA(3,'Accounting')">Cek</button></td><td id="aaa3out" class="small">Belum diperiksa.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note warning"><b>Ingat:</b> login berhasil hanya membuktikan bahwa identitas diterima oleh mekanisme Authentication. Izin terhadap file, aplikasi, atau menu tetap diperiksa melalui Authorization.</div>
+</section>
+
+<section class="card" id="access">
+  <h2>3. Apa itu Access Control?</h2>
+  <p><i>Access control</i> adalah mekanisme untuk menentukan siapa yang dapat mengakses resource dan tindakan apa yang boleh dilakukan.</p>
+  <p>Contoh resource pada komputer atau jaringan: file, folder, aplikasi, database, printer jaringan, folder bersama, dan menu administrator.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Permission</th><th>Makna umum</th><th>Contoh</th></tr></thead>
+    <tbody>
+      <tr><td><code>Read</code></td><td>Membaca atau melihat isi</td><td>Membuka laporan tanpa mengubahnya</td></tr>
+      <tr><td><code>Write</code></td><td>Membuat atau mengubah isi</td><td>Mengubah nilai pada dokumen</td></tr>
+      <tr><td><code>Execute</code></td><td>Menjalankan program atau file yang dapat dieksekusi</td><td>Menjalankan aplikasi</td></tr>
+      <tr><td><code>Delete</code></td><td>Menghapus resource</td><td>Menghapus file</td></tr>
+      <tr><td><code>Manage</code></td><td>Mengelola konfigurasi atau izin, jika sistem menyediakan izin tersebut</td><td>Mengubah role pengguna</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><b>Least privilege:</b> berikan hanya izin minimum yang diperlukan seseorang untuk menjalankan tugasnya. Jangan memberikan akses administrator hanya karena lebih praktis.</div>
+</section>
+
+<section class="card" id="rbac">
+  <h2>4. RBAC (Role-Based Access Control)</h2>
+  <p>RBAC memberikan permission kepada <b>role</b>, kemudian pengguna memperoleh permission melalui role yang dimilikinya. Role biasanya mewakili tanggung jawab kerja.</p>
+  <p>Contoh role: <code>Administrator</code>, <code>Finance</code>, dan <code>Staff</code>. Jika seorang pegawai pindah tugas, pengelola dapat menyesuaikan role-nya berdasarkan kebijakan organisasi.</p>
+  <h3>Contoh matriks kebijakan RBAC</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Resource / tindakan</th><th>Administrator</th><th>Finance</th><th>Staff</th></tr></thead>
+    <tbody>
+      <tr><td>Membaca dokumen umum</td><td>Diizinkan</td><td>Diizinkan</td><td>Diizinkan</td></tr>
+      <tr><td>Mengubah laporan keuangan</td><td>Sesuai kebijakan</td><td>Diizinkan</td><td>Ditolak</td></tr>
+      <tr><td>Mengelola akun pengguna</td><td>Diizinkan</td><td>Ditolak</td><td>Ditolak</td></tr>
+      <tr><td>Menghapus laporan keuangan</td><td>Sesuai kebijakan</td><td>Sesuai kebijakan</td><td>Ditolak</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">Ini adalah contoh kebijakan pembelajaran, bukan aturan universal. Hak Administrator tetap perlu dibatasi sesuai kebutuhan.</p>
+  <h3>Simulasi RBAC mini (lokal di halaman ini)</h3>
+  <p>Gunakan simulator sederhana ini untuk melihat bagaimana kombinasi role, resource, dan action menghasilkan keputusan akses. Simulasi ini berjalan di browser dan tidak terhubung ke akun atau sistem perusahaan.</p>
+  <div class="lab-grid">
+    <div class="panel">
+      <label for="rbRole">Role</label><select id="rbRole"><option>Administrator</option><option>Finance</option><option>Staff</option></select>
+      <label for="rbResource">Resource</label><select id="rbResource"><option>Dokumen umum</option><option>Laporan keuangan</option><option>Pengelolaan akun pengguna</option></select>
+      <label for="rbAction">Action</label><select id="rbAction"><option>Read</option><option>Write</option><option>Delete</option><option>Manage</option></select>
+      <div class="actions"><button class="primary" onclick="checkRBAC()">Check Access</button><button class="secondary" onclick="resetRBAC()">Reset</button></div>
+    </div>
+    <div class="panel">
+      <b>Hasil pemeriksaan</b>
+      <div id="rbResult" class="result neutral" aria-live="polite">Pilih role, resource, dan action, lalu tekan Check Access.</div>
+      <p id="rbExplanation" class="small">Hasil mengikuti kebijakan contoh yang ditanam pada simulasi ini.</p>
+    </div>
+  </div>
+  <div class="note warning"><b>Perhatian akademik:</b> simulator mini ini menggunakan kebijakan contoh yang disederhanakan untuk latihan konsep. Hasilnya bukan hasil dari situs eksternal dan bukan pengujian sistem nyata.</div>
+</section>
+
+<section class="card" id="acl">
+  <h2>5. ACL (Access Control List)</h2>
+  <p>ACL adalah daftar izin yang terkait dengan resource tertentu. ACL mencatat pengguna atau kelompok mana yang boleh melakukan tindakan tertentu pada resource tersebut.</p>
+  <p>Contoh: file <code>Laporan_Keuangan.xlsx</code> memiliki daftar izin tersendiri. File lain dapat memiliki daftar izin yang berbeda.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Resource</th><th>Pengguna</th><th>Read</th><th>Write</th><th>Delete</th></tr></thead>
+    <tbody>
+      <tr><td>Laporan keuangan</td><td>Siti (Finance)</td><td>Ya</td><td>Ya</td><td>Tidak</td></tr>
+      <tr><td>Laporan keuangan</td><td>Rina (Manajer)</td><td>Ya</td><td>Tidak</td><td>Tidak</td></tr>
+      <tr><td>Laporan keuangan</td><td>Budi (Staff)</td><td>Tidak</td><td>Tidak</td><td>Tidak</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Latihan menyusun ACL</h3>
+  <p>Kasus: Siti adalah staf keuangan, Rina adalah manajer, dan Budi adalah staf umum. Atur izin untuk setiap pengguna pada file laporan keuangan. Pilih izin berdasarkan kebijakan contoh berikut: Siti boleh membaca dan mengubah; Rina boleh membaca; Budi tidak boleh mengakses. Tidak seorang pun boleh menghapus file.</p>
+  <div class="matrix table-wrap">
+    <table>
+      <thead><tr><th>Pengguna</th><th>Read</th><th>Write</th><th>Delete</th></tr></thead>
+      <tbody>
+        <tr><td>Siti (Finance)</td><td><select id="aclSitiR"><option value="">Pilih</option><option value="yes">Ya</option><option value="no">Tidak</option></select></td><td><select id="aclSitiW"><option value="">Pilih</option><option value="yes">Ya</option><option value="no">Tidak</option></select></td><td><select id="aclSitiD"><option value="">Pilih</option><option value="yes">Ya</option><option value="no">Tidak</option></select></td></tr>
+        <tr><td>Rina (Manajer)</td><td><select id="aclRinaR"><option value="">Pilih</option><option value="yes">Ya</option><option value="no">Tidak</option></select></td><td><select id="aclRinaW"><option value="">Pilih</option><option value="yes">Ya</option><option value="no">Tidak</option></select></td><td><select id="aclRinaD"><option value="">Pilih</option><option value="yes">Ya</option><option value="no">Tidak</option></select></td></tr>
+        <tr><td>Budi (Staff)</td><td><select id="aclBudiR"><option value="">Pilih</option><option value="yes">Ya</option><option value="no">Tidak</option></select></td><td><select id="aclBudiW"><option value="">Pilih</option><option value="yes">Ya</option><option value="no">Tidak</option></select></td><td><select id="aclBudiD"><option value="">Pilih</option><option value="yes">Ya</option><option value="no">Tidak</option></select></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="actions"><button class="primary" onclick="checkACL()">Periksa ACL</button><button class="secondary" onclick="resetACL()">Kosongkan</button></div>
+  <div id="aclResult" class="result neutral" aria-live="polite">Lengkapi tabel, lalu periksa jawaban.</div>
+  <p class="small">Latihan ini memeriksa jawaban terhadap kebijakan skenario. Ini bukan perubahan permission pada file komputer sungguhan.</p>
+</section>
+
+<section class="card" id="banding">
+  <h2>6. Perbedaan RBAC dan ACL</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Aspek</th><th>RBAC</th><th>ACL</th></tr></thead>
+    <tbody>
+      <tr><td>Dasar pengaturan</td><td>Role pengguna</td><td>Daftar izin pada resource</td></tr>
+      <tr><td>Pertanyaan</td><td>Apa yang boleh dilakukan pemegang role ini?</td><td>Siapa boleh melakukan apa pada resource ini?</td></tr>
+      <tr><td>Contoh</td><td>Semua role Finance memperoleh izin membaca laporan keuangan</td><td>File laporan keuangan mengizinkan Siti membaca dan mengubah file</td></tr>
+      <tr><td>Kelebihan</td><td>Memudahkan pengelolaan izin untuk banyak pengguna dengan tanggung jawab serupa</td><td>Memungkinkan izin yang spesifik pada resource</td></tr>
+      <tr><td>Risiko umum</td><td>Role terlalu luas atau role diberikan kepada pengguna yang salah</td><td>Daftar izin terlalu luas atau sulit ditinjau saat jumlah resource bertambah</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><b>Catatan:</b> RBAC dan ACL bukan dua istilah untuk hal yang sama. RBAC mengorganisasi permission berdasarkan role; ACL mencatat izin pada resource. Sistem tertentu dapat menggunakan keduanya.</div>
+</section>
+
+<section class="card" id="sim-auth">
+  <h2>7. Praktikum eksternal: Authentication</h2>
+  <p>Gunakan simulator eksternal berikut untuk melihat alur login. Antarmuka situs dapat berubah; ikuti label yang tampil saat praktikum.</p>
+  <div class="note warning"><b>Gunakan akun demonstrasi dari situs saja.</b> Jangan memasukkan password pribadi, akun kampus, atau kredensial asli ke simulator pembelajaran.</div>
+  <p><a href="https://theinfinity.dev/simulators/auth" target="_blank" rel="noopener noreferrer">Buka Authentication &amp; Authorization Simulator ↗</a></p>
+  <ol>
+    <li>Buka tab <code>Authentication</code>.</li>
+    <li>Periksa apakah situs menampilkan akun demonstrasi dan petunjuk login.</li>
+    <li>Jika akun contoh tersedia, gunakan kredensial yang ditampilkan oleh situs. Jangan mengandalkan kredensial dari salinan materi ini jika antarmuka situs telah berubah.</li>
+    <li>Lakukan satu login yang sesuai petunjuk dan satu percobaan dengan password yang salah.</li>
+    <li>Catat respons yang terlihat, termasuk apakah MFA diminta.</li>
+  </ol>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Pengujian</th><th>Hasil aktual</th><th>Kesimpulan</th></tr></thead>
+    <tbody>
+      <tr><td>Login dengan kredensial demonstrasi yang benar</td><td><input type="text" id="authObs1" placeholder="Catat hasil di sini"></td><td><input type="text" id="authCon1" placeholder="Apa artinya?"></td></tr>
+      <tr><td>Login dengan password salah</td><td><input type="text" id="authObs2" placeholder="Catat hasil di sini"></td><td><input type="text" id="authCon2" placeholder="Apa artinya?"></td></tr>
+      <tr><td>Apakah MFA diminta?</td><td><input type="text" id="authObs3" placeholder="Ya / tidak / tidak tersedia"></td><td><input type="text" id="authCon3" placeholder="Apa artinya?"></td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Pertanyaan:</b> Apakah login berhasil berarti pengguna dapat membuka semua menu? Jelaskan perbedaan Authentication dan Authorization.</p>
+</section>
+
+<section class="card" id="sim-rbac">
+  <h2>8. Praktikum eksternal: Authorization (RBAC)</h2>
+  <p>Di simulator eksternal, cari tab bernama <code>Authorization (RBAC)</code> atau <code>Authorization</code>, jika tersedia.</p>
+  <ol>
+    <li>Pilih role yang tersedia pada situs.</li>
+    <li>Pilih resource yang tersedia.</li>
+    <li>Pilih action yang tersedia.</li>
+    <li>Tekan tombol seperti <code>Check Access</code> jika ada.</li>
+    <li>Catat hasil aktual, misalnya akses diberikan atau ditolak.</li>
+    <li>Ulangi dengan mengganti satu variabel pada satu waktu: role, resource, atau action.</li>
+  </ol>
+  <div class="note warning">Nama role, resource, action, dan tombol dapat berbeda sesuai versi situs. Jangan mengisi hasil berdasarkan perkiraan; catat hasil yang benar-benar ditampilkan.</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>No.</th><th>Role</th><th>Resource</th><th>Action</th><th>Hasil aktual</th><th>Apakah sesuai kebijakan? Mengapa?</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><input type="text" placeholder="Role"></td><td><input type="text" placeholder="Resource"></td><td><input type="text" placeholder="Action"></td><td><input type="text" placeholder="Granted / Denied"></td><td><input type="text" placeholder="Alasan"></td></tr>
+      <tr><td>2</td><td><input type="text" placeholder="Role"></td><td><input type="text" placeholder="Resource"></td><td><input type="text" placeholder="Action"></td><td><input type="text" placeholder="Granted / Denied"></td><td><input type="text" placeholder="Alasan"></td></tr>
+      <tr><td>3</td><td><input type="text" placeholder="Role"></td><td><input type="text" placeholder="Resource"></td><td><input type="text" placeholder="Action"></td><td><input type="text" placeholder="Granted / Denied"></td><td><input type="text" placeholder="Alasan"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="card" id="sim-acl">
+  <h2>9. Praktikum ACL: skenario workstation</h2>
+  <p>Bagian ini adalah latihan analisis berbasis skenario, bukan klaim bahwa simulator eksternal memiliki tab ACL. Perusahaan memiliki workstation bersama dan dua file: <code>Laporan_Keuangan.xlsx</code> serta <code>Dokumen_Umum.pdf</code>.</p>
+  <ul>
+    <li>Siti (Finance): boleh membaca dan mengubah laporan keuangan, tetapi tidak menghapusnya.</li>
+    <li>Rina (Manajer): boleh membaca laporan keuangan, tetapi tidak mengubah atau menghapusnya.</li>
+    <li>Budi (Staff): tidak boleh mengakses laporan keuangan.</li>
+    <li>Semua pegawai boleh membaca dokumen umum.</li>
+  </ul>
+  <h3>Uji empat skenario</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Skenario</th><th>Keputusan menurut kebijakan</th><th>Alasan</th></tr></thead>
+    <tbody>
+      <tr><td>Budi mencoba membaca laporan keuangan</td><td><select id="case1"><option value="">Pilih</option><option value="allow">Izinkan</option><option value="deny">Tolak</option></select></td><td><input type="text" id="reason1" placeholder="Jelaskan alasan"></td></tr>
+      <tr><td>Siti mencoba mengubah laporan keuangan</td><td><select id="case2"><option value="">Pilih</option><option value="allow">Izinkan</option><option value="deny">Tolak</option></select></td><td><input type="text" id="reason2" placeholder="Jelaskan alasan"></td></tr>
+      <tr><td>Rina mencoba menghapus laporan keuangan</td><td><select id="case3"><option value="">Pilih</option><option value="allow">Izinkan</option><option value="deny">Tolak</option></select></td><td><input type="text" id="reason3" placeholder="Jelaskan alasan"></td></tr>
+      <tr><td>Budi mencoba membaca dokumen umum</td><td><select id="case4"><option value="">Pilih</option><option value="allow">Izinkan</option><option value="deny">Tolak</option></select></td><td><input type="text" id="reason4" placeholder="Jelaskan alasan"></td></tr>
+    </tbody>
+  </table></div>
+  <div class="actions"><button class="primary" onclick="checkCases()">Periksa keputusan</button><button class="secondary" onclick="resetCases()">Reset</button></div>
+  <div id="caseResult" class="result neutral" aria-live="polite">Pilih keputusan untuk empat skenario.</div>
+  <h3>Tantangan: temukan izin yang terlalu luas</h3>
+  <p>Bayangkan ACL laporan keuangan tidak sengaja memberi Budi izin <code>Write</code>. Jelaskan dampaknya terhadap <i>confidentiality</i> dan <i>integrity</i>, kemudian tulis perubahan yang perlu dilakukan.</p>
+  <textarea id="aclReflection" rows="4" style="width:100%;padding:11px;border:1px solid #bfcada;border-radius:10px" placeholder="Tulis analisis dan rekomendasi..."></textarea>
+</section>
+
+<section class="card" id="accounting">
+  <h2>10. Praktikum Accounting: audit log</h2>
+  <p>Accounting dalam AAA berhubungan dengan pencatatan aktivitas. Buat log berdasarkan kejadian yang benar-benar diamati pada praktik Authentication dan RBAC. Contoh di bawah hanya menunjukkan format, bukan hasil pengujian situs.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Waktu</th><th>Pengguna</th><th>Resource</th><th>Action</th><th>Hasil</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <tr><td>09.00</td><td>Admin</td><td>Sistem login</td><td>Login</td><td>Berhasil</td><td>Contoh format</td></tr>
+      <tr><td>09.05</td><td>Viewer</td><td>Laporan keuangan</td><td>Read</td><td>Ditolak</td><td>Contoh format</td></tr>
+      <tr><td>09.10</td><td>Editor</td><td>Dokumen</td><td>Write</td><td>Diizinkan</td><td>Contoh format</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Susun catatan aktivitas sendiri</h3>
+  <div class="table-wrap"><table id="logTable">
+    <thead><tr><th>Waktu</th><th>Pengguna/role</th><th>Resource</th><th>Action</th><th>Hasil</th></tr></thead>
+    <tbody>
+      <tr><td><input type="text" placeholder="09.15"></td><td><input type="text" placeholder="Role aktual"></td><td><input type="text" placeholder="Resource aktual"></td><td><input type="text" placeholder="Action aktual"></td><td><input type="text" placeholder="Hasil aktual"></td></tr>
+      <tr><td><input type="text" placeholder="09.20"></td><td><input type="text" placeholder="Role aktual"></td><td><input type="text" placeholder="Resource aktual"></td><td><input type="text" placeholder="Action aktual"></td><td><input type="text" placeholder="Hasil aktual"></td></tr>
+      <tr><td><input type="text" placeholder="09.25"></td><td><input type="text" placeholder="Role aktual"></td><td><input type="text" placeholder="Resource aktual"></td><td><input type="text" placeholder="Action aktual"></td><td><input type="text" placeholder="Hasil aktual"></td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Pertanyaan refleksi:</b> Mengapa log perlu mencatat siapa, kapan, resource apa, tindakan apa, dan hasilnya? Mengapa log juga perlu dilindungi dari perubahan yang tidak sah?</p>
+</section>
+
+<section class="card" id="kasus">
+  <h2>11. Kasus akhir: audit dan perbaikan</h2>
+  <p>Sebuah perusahaan menemukan tiga masalah:</p>
+  <ol>
+    <li>Staf umum dapat mengubah laporan keuangan.</li>
+    <li>Staf keuangan dapat membuat akun administrator tanpa persetujuan.</li>
+    <li>Perubahan hak akses tidak tercatat dengan baik.</li>
+  </ol>
+  <p>Untuk setiap masalah, tentukan komponen AAA yang paling berkaitan, risiko yang mungkin muncul, dan rekomendasi perbaikan.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Temuan</th><th>Komponen AAA</th><th>Risiko</th><th>Rekomendasi</th></tr></thead>
+    <tbody>
+      <tr><td>Staf umum dapat mengubah laporan</td><td><select id="f1"><option value="">Pilih</option><option>Authentication</option><option>Authorization</option><option>Accounting</option></select></td><td><input type="text" id="risk1" placeholder="Risiko"></td><td><input type="text" id="fix1" placeholder="Perbaikan"></td></tr>
+      <tr><td>Staf keuangan dapat membuat akun admin</td><td><select id="f2"><option value="">Pilih</option><option>Authentication</option><option>Authorization</option><option>Accounting</option></select></td><td><input type="text" id="risk2" placeholder="Risiko"></td><td><input type="text" id="fix2" placeholder="Perbaikan"></td></tr>
+      <tr><td>Perubahan hak akses tidak tercatat</td><td><select id="f3"><option value="">Pilih</option><option>Authentication</option><option>Authorization</option><option>Accounting</option></select></td><td><input type="text" id="risk3" placeholder="Risiko"></td><td><input type="text" id="fix3" placeholder="Perbaikan"></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="card" id="kuis">
+  <h2>12. Kuis evaluasi</h2>
+  <p>Pilih satu jawaban terbaik untuk setiap pertanyaan, kemudian tekan <b>Nilai kuis</b>.</p>
+  <form id="quizForm">
+    <div class="quiz-item"><p>1. Seorang pengguna berhasil login tetapi tidak diizinkan membuka menu administrator. Mekanisme yang menolak akses tersebut adalah...</p>
+      <label><input type="radio" name="q1" value="a"> Authentication</label>
+      <label><input type="radio" name="q1" value="b"> Authorization</label>
+      <label><input type="radio" name="q1" value="c"> Accounting</label>
+    </div>
+    <div class="quiz-item"><p>2. Dalam RBAC, permission terutama diberikan berdasarkan...</p>
+      <label><input type="radio" name="q2" value="a"> Role pengguna</label>
+      <label><input type="radio" name="q2" value="b"> Warna tampilan aplikasi</label>
+      <label><input type="radio" name="q2" value="c"> Urutan pengguna login</label>
+    </div>
+    <div class="quiz-item"><p>3. ACL umumnya menyimpan...</p>
+      <label><input type="radio" name="q3" value="a"> Daftar izin pada resource</label>
+      <label><input type="radio" name="q3" value="b"> Hanya password pengguna</label>
+      <label><input type="radio" name="q3" value="c"> Daftar alamat situs favorit</label>
+    </div>
+    <div class="quiz-item"><p>4. Prinsip least privilege berarti...</p>
+      <label><input type="radio" name="q4" value="a"> Semua pengguna diberi hak administrator</label>
+      <label><input type="radio" name="q4" value="b"> Pengguna diberi izin minimum yang diperlukan untuk tugasnya</label>
+      <label><input type="radio" name="q4" value="c"> Pengguna tidak boleh mengakses resource apa pun</label>
+    </div>
+    <div class="quiz-item"><p>5. Catatan bahwa seorang admin mengubah hak akses pada pukul 10.00 terutama berkaitan dengan...</p>
+      <label><input type="radio" name="q5" value="a"> Accounting</label>
+      <label><input type="radio" name="q5" value="b"> Authentication</label>
+      <label><input type="radio" name="q5" value="c"> Enkripsi file</label>
+    </div>
+    <div class="quiz-item"><p>6. Staf umum dapat mengubah laporan keuangan meskipun tugasnya tidak memerlukan izin tersebut. Ini menunjukkan...</p>
+      <label><input type="radio" name="q6" value="a"> Kebijakan authorization terlalu luas</label>
+      <label><input type="radio" name="q6" value="b"> Authentication selalu gagal</label>
+      <label><input type="radio" name="q6" value="c"> Accounting tidak dibutuhkan</label>
+    </div>
+    <div class="actions"><button class="primary" type="button" onclick="gradeQuiz()">Nilai kuis</button><button class="secondary" type="reset" onclick="document.getElementById('quizResult').textContent=''">Ulangi</button></div>
+  </form>
+  <div id="quizResult" aria-live="polite"></div>
+  <details><summary>Lihat kunci dan penjelasan</summary>
+    <ol>
+      <li><b>Authorization.</b> Sistem sudah mengenali pengguna, tetapi menolak tindakan yang tidak diizinkan.</li>
+      <li><b>Role pengguna.</b> Permission dikaitkan dengan role, lalu pengguna memperoleh izin melalui role tersebut.</li>
+      <li><b>Daftar izin pada resource.</b> ACL menentukan pengguna/kelompok dan tindakan yang diperbolehkan terhadap resource.</li>
+      <li><b>Izin minimum yang diperlukan.</b> Mengurangi dampak kesalahan atau penyalahgunaan.</li>
+      <li><b>Accounting.</b> Catatan aktivitas mendukung audit dan investigasi.</li>
+      <li><b>Kebijakan authorization terlalu luas.</b> Perlu peninjauan role atau ACL serta pengujian ulang.</li>
+    </ol>
+  </details>
+</section>
+
+<section class="card" id="laporan">
+  <h2>13. Format laporan praktikum</h2>
+  <p>Setiap kelompok menyerahkan laporan singkat dengan struktur berikut.</p>
+  <ol>
+    <li><b>Identitas kelompok:</b> nama anggota dan kelas.</li>
+    <li><b>Pemetaan AAA:</b> minimal tiga contoh Authentication, Authorization, dan Accounting.</li>
+    <li><b>Hasil Authentication:</b> pengujian yang dilakukan dan respons aktual simulator.</li>
+    <li><b>Hasil RBAC:</b> minimal tiga pengujian role, resource, dan action beserta hasil serta analisisnya.</li>
+    <li><b>Analisis ACL:</b> keputusan untuk empat skenario workstation dan alasannya.</li>
+    <li><b>Audit log:</b> catatan aktivitas berdasarkan pengujian aktual.</li>
+    <li><b>Temuan dan mitigasi:</b> minimal tiga kelemahan, dampak, serta rekomendasi.</li>
+    <li><b>Kesimpulan:</b> apa yang dipelajari dan apa yang masih menjadi batasan simulasi.</li>
+  </ol>
+  <h3>Checklist sebelum mengumpulkan</h3>
+  <div class="checklist">
+    <label><input type="checkbox"> Saya membedakan Authentication, Authorization, dan Accounting dengan benar.</label>
+    <label><input type="checkbox"> Saya mencatat hasil aktual, bukan menebak hasil simulator.</label>
+    <label><input type="checkbox"> Saya dapat menjelaskan perbedaan RBAC dan ACL.</label>
+    <label><input type="checkbox"> Saya mengidentifikasi setidaknya tiga kelemahan dan mengusulkan mitigasi.</label>
+    <label><input type="checkbox"> Saya tidak memasukkan kredensial pribadi ke situs latihan.</label>
+  </div>
+  <div class="actions interactive-only"><button class="primary" onclick="window.print()">Cetak / Simpan sebagai PDF</button><button class="secondary" onclick="window.scrollTo({top:0,behavior:'smooth'})">Kembali ke atas</button></div>
+</section>
+</main>
+</div>
+
+<footer>
+  <p><b>Catatan akademik:</b> materi ini adalah modul pembelajaran dan simulasi konseptual. Antarmuka serta fitur situs eksternal dapat berubah. Praktik pada halaman ini tidak mengubah hak akses komputer nyata, dan hasil simulasi lokal tidak dikirim ke server.</p>
+  <p>Keamanan Komputer dan Jaringan · Pertemuan 4 · AAA &amp; Access Control</p>
+</footer>
+
+<script>
+function checkAAA(n,correct){
+  const selected=document.getElementById('aaa'+n).value;
+  const out=document.getElementById('aaa'+n+'out');
+  if(!selected){out.textContent='Pilih jawaban terlebih dahulu.';return}
+  out.textContent=(selected===correct?'Benar. ':'Belum tepat. ')+
+    ({Authentication:'Sistem memverifikasi identitas pengguna.',Authorization:'Sistem memutuskan tindakan yang diizinkan.',Accounting:'Sistem mencatat aktivitas untuk audit.'}[correct]);
+  out.style.color=selected===correct?'#197447':'#b42332';
+}
+function checkRBAC(){
+  const role=document.getElementById('rbRole').value;
+  const resource=document.getElementById('rbResource').value;
+  const action=document.getElementById('rbAction').value;
+  // Example teaching policy. Admin can manage accounts; Finance can read/write finance reports; Staff cannot access finance reports.
+  let allowed=false,reason='';
+  if(resource==='Dokumen umum' && action==='Read'){allowed=true;reason='Kebijakan contoh mengizinkan semua role membaca dokumen umum.'}
+  else if(resource==='Dokumen umum' && action==='Write'){allowed=(role==='Administrator');reason=allowed?'Kebijakan contoh mengizinkan Administrator mengubah dokumen umum.':'Kebijakan contoh tidak memberi izin Write untuk role ini.'}
+  else if(resource==='Laporan keuangan'){
+    if(role==='Finance' && (action==='Read'||action==='Write')){allowed=true;reason='Role Finance diberi izin membaca dan mengubah laporan keuangan pada kebijakan contoh.'}
+    else if(role==='Administrator' && (action==='Read'||action==='Write')){allowed=true;reason='Kebijakan contoh mengizinkan Administrator melakukan tindakan ini; dalam sistem nyata izin harus disesuaikan kebutuhan.'}
+    else {allowed=false;reason='Kebijakan contoh menolak tindakan ini untuk role yang dipilih.'}
+  }
+  else if(resource==='Pengelolaan akun pengguna' && role==='Administrator' && action==='Manage'){allowed=true;reason='Kebijakan contoh hanya memberi izin Manage akun kepada Administrator.'}
+  else if(resource==='Pengelolaan akun pengguna' && action==='Read' && role==='Administrator'){allowed=true;reason='Kebijakan contoh mengizinkan Administrator melihat pengelolaan akun.'}
+  else {allowed=false;reason='Kebijakan contoh tidak memberikan permission untuk kombinasi ini.'}
+  const box=document.getElementById('rbResult');
+  box.className='result '+(allowed?'granted':'denied');
+  box.textContent=allowed?'ACCESS GRANTED':'ACCESS DENIED';
+  document.getElementById('rbExplanation').textContent=reason+' Periksa apakah keputusan ini sesuai prinsip least privilege.';
+}
+function resetRBAC(){
+  document.getElementById('rbRole').selectedIndex=0;
+  document.getElementById('rbResource').selectedIndex=0;
+  document.getElementById('rbAction').selectedIndex=0;
+  const box=document.getElementById('rbResult');box.className='result neutral';box.textContent='Pilih role, resource, dan action, lalu tekan Check Access.';
+  document.getElementById('rbExplanation').textContent='Hasil mengikuti kebijakan contoh yang ditanam pada simulasi ini.';
+}
+function checkACL(){
+  const expected={
+    aclSitiR:'yes',aclSitiW:'yes',aclSitiD:'no',
+    aclRinaR:'yes',aclRinaW:'no',aclRinaD:'no',
+    aclBudiR:'no',aclBudiW:'no',aclBudiD:'no'
+  };
+  let answered=0,correct=0;
+  for(const [id,val] of Object.entries(expected)){
+    const el=document.getElementById(id);
+    if(el.value)answered++;
+    if(el.value===val)correct++;
+  }
+  const out=document.getElementById('aclResult');
+  if(answered<Object.keys(expected).length){out.className='result neutral';out.textContent='Lengkapi semua 9 izin terlebih dahulu. Jawaban terisi: '+answered+'/9.';return}
+  out.className='result '+(correct===9?'granted':'denied');
+  out.textContent='Skor kebijakan: '+correct+'/9 benar. '+(correct===9?'Matriks sesuai dengan kebijakan skenario.':'Tinjau kembali setiap izin. Siti: Read/Write/No Delete; Rina: Read saja; Budi: semua ditolak untuk file laporan keuangan.');
+}
+function resetACL(){
+  document.querySelectorAll('#sim-acl select').forEach(el=>el.value='');
+  const out=document.getElementById('aclResult');out.className='result neutral';out.textContent='Lengkapi tabel, lalu periksa jawaban.';
+}
+function checkCases(){
+  const expected={case1:'deny',case2:'allow',case3:'deny',case4:'allow'};
+  let correct=0,answered=0;
+  for(const [id,val] of Object.entries(expected)){const v=document.getElementById(id).value;if(v)answered++;if(v===val)correct++}
+  const out=document.getElementById('caseResult');
+  if(answered<4){out.className='result neutral';out.textContent='Jawab semua empat skenario terlebih dahulu ('+answered+'/4).';return}
+  out.className='result '+(correct===4?'granted':'denied');
+  out.textContent='Jawaban sesuai kebijakan: '+correct+'/4. Kunci: Budi membaca laporan = tolak; Siti mengubah laporan = izinkan; Rina menghapus laporan = tolak; Budi membaca dokumen umum = izinkan. Pastikan alasan tertulis juga konsisten.';
+}
+function resetCases(){
+  ['case1','case2','case3','case4'].forEach(id=>document.getElementById(id).value='');
+  ['reason1','reason2','reason3','reason4'].forEach(id=>document.getElementById(id).value='');
+  const out=document.getElementById('caseResult');out.className='result neutral';out.textContent='Pilih keputusan untuk empat skenario.';
+}
+function gradeQuiz(){
+  const key={q1:'b',q2:'a',q3:'a',q4:'b',q5:'a',q6:'a'};
+  let score=0,answered=0;
+  for(const [q,a] of Object.entries(key)){const chosen=document.querySelector('input[name="'+q+'"]:checked');if(chosen){answered++;if(chosen.value===a)score++}}
+  const out=document.getElementById('quizResult');
+  out.textContent='Nilai: '+score+'/6 ('+Math.round(score/6*100)+'%). Jawaban terisi: '+answered+'/6. Buka “Lihat kunci dan penjelasan” untuk mempelajari alasannya.';
+  out.style.color=score>=5?'#197447':'#172033';
+}
+</script>
+</body>
+</html>
